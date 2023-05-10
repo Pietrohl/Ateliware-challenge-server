@@ -1,0 +1,19 @@
+{
+  "name": "ateliware-challenge-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pietrohl/Ateliware-challenge-server.git"
+  },
+  "author": "Pietro Labadessa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pietrohl/Ateliware-challenge-server/issues"
+  },
+  "homepage": "https://github.com/Pietrohl/Ateliware-challenge-server#readme"
+}
