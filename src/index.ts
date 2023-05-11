@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { config } from "./config";
-import { bootstrapServer } from "./server";
+import { createServer } from "./server";
 
-function startServer(app: Express) {
+function bootstrap(app: Express) {
   try {
     app.listen(config.PORT, "0.0.0.0", () => {
       console.log("running on port: ", config.PORT);
@@ -13,4 +13,4 @@ function startServer(app: Express) {
   }
 }
 
-startServer(bootstrapServer());
+bootstrap(createServer());
