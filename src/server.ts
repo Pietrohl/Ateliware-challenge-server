@@ -1,11 +1,14 @@
 import e from "express";
 import helmet from "helmet";
-import { container, type AppContainer } from "./container";
+import { container } from "./container";
 import { morganMiddleware } from "./middlware/httpLogger.middleware";
 import { logger } from "./utils";
 
+// Add new token with new router
+type RouterTokens = "routingRouter";
+
 const attachRoutes = (app: e.Express) => {
-  const routes: Array<{ routerToken: keyof AppContainer; path: string }> = [
+  const routes: Array<{ routerToken: RouterTokens; path: string }> = [
     { routerToken: "routingRouter", path: "/routing" },
   ];
 

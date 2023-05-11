@@ -1,12 +1,19 @@
 import { InjectionMode, asFunction, createContainer } from "awilix";
-import { createRoutingController } from "../routing/routing.controller";
+import type { Router } from "express";
+import {
+  createRoutingController,
+  type RoutingController,
+} from "../routing/routing.controller";
 import { createRoutingRouter } from "../routing/routing.router";
-import { createRoutingService } from "../routing/routing.service";
+import {
+  createRoutingService,
+  type RoutingService,
+} from "../routing/routing.service";
 
 export interface AppContainer {
-  routingController: any;
-  routingRouter: any;
-  routingService: any;
+  routingController: RoutingController;
+  routingRouter: Router;
+  routingService: RoutingService;
 }
 
 export const container = createContainer<AppContainer>({
