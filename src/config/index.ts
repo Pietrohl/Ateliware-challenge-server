@@ -1,6 +1,8 @@
+import { logger } from "../utils";
+
 require("dotenv").config();
 
-console.log("Importing Configs");
+logger.info("Importing Configs");
 
 const config = {
   PORT: 3000,
