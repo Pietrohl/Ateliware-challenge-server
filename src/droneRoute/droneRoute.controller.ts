@@ -6,11 +6,11 @@ export interface RoutingController {
   findNewPath: RequestHandler;
 }
 
-export const createRoutingController = ({
-  routingService,
+export const createDroneRouteController = ({
+  droneRouteService: routingService,
 }: AppContainer): RoutingController => {
   return {
-    list: (_req, res) => {
+    list: (_, res) => {
       res.json(routingService.listLastCalculatedRoutes());
     },
     findNewPath: () => {},

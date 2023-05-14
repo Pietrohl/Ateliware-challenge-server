@@ -1,19 +1,26 @@
 import { InjectionMode, asFunction, createContainer } from "awilix";
 import type { Router } from "express";
+import type { ChessboardRepository } from "../chessboard/chessboard.repository";
 import {
-  createRoutingController,
+  createDroneRouteController,
   type RoutingController,
-} from "../routing/routing.controller";
-import { createRoutingRouter } from "../routing/routing.router";
+} from "../droneRoute/droneRoute.controller";
 import {
-  createRoutingService,
-  type RoutingService,
-} from "../routing/routing.service";
+  createRouteRepository,
+  type DroneRouteRepository,
+} from "../droneRoute/droneRoute.repository";
+import { createRoutingRouter } from "../droneRoute/droneRoute.router";
+import {
+  createDroneRouteService,
+  type DroneRouteService,
+} from "../droneRoute/droneRoute.service";
 
 export interface AppContainer {
-  routingController: RoutingController;
-  routingRouter: Router;
-  routingService: RoutingService;
+  droneRouteController: RoutingController;
+  droneRouteRouter: Router;
+  droneRouteService: DroneRouteService;
+  droneRouteRepository: DroneRouteRepository;
+  chessboardRepository: ChessboardRepository
 }
 
 export const container = createContainer<AppContainer>({
@@ -21,7 +28,8 @@ export const container = createContainer<AppContainer>({
 });
 
 container.register({
-  routingService: asFunction(createRoutingService),
-  routingController: asFunction(createRoutingController),
-  routingRouter: asFunction(createRoutingRouter),
+  droneRouteService: asFunction(createDroneRouteService),
+  droneRouteController: asFunction(createDroneRouteController),
+  droneRouteRouter: asFunction(createRoutingRouter),
+  droneRouteRepository: asFunction(createRouteRepository),
 });
