@@ -1,10 +1,15 @@
-import type { RequestHandler } from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { AppContainer } from "../container";
 import { logger } from "../utils";
+import type { Coordinate } from "./models/coordinate.model";
 
 export interface RoutingController {
-  list: RequestHandler;
-  findNewPath: RequestHandler;
+  list: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  findNewPath: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => Promise<void>;
 }
 
 export const createDroneRouteController = ({
@@ -17,8 +22,19 @@ export const createDroneRouteController = ({
       res.status(200);
       res.json(await routingService.listLastCalculatedRoutes());
     },
-    findNewPath: async (req, res) => {
-      const { initialCoordinate, packageCoordinate, deliveryCoordinate } =
+    findNewPath: async (
+      req: Request<
+        unknown,
+        unknown,
+        {
+          initialCoordinate: Coordinate;
+          packageCoordinate: Coordinate;
+          deliveryCoordinate: Coordinate;
+        }
+      >,
+      res
+    ) => {
+      const { deliveryCoordinate, initialCoordinate, packageCoordinate } =
         req.body;
       res.status(201);
 

@@ -1,12 +1,14 @@
 import { Router } from "express";
 import type { AppContainer } from "../container";
-import { logger } from "../utils";
+import { asyncWrap, logger } from "../utils";
 
 export const createRoutingRouter = ({ droneRouteController }: AppContainer) => {
   logger.info("initiating drone route router...");
   const router = Router();
-  router.get("", droneRouteController.list);
-  router.post("", droneRouteController.findNewPath);
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  router.get("", asyncWrap(droneRouteController.list));
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  router.post("", asyncWrap(droneRouteController.findNewPath));
 
   return router;
 };
