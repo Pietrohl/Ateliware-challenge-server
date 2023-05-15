@@ -28,9 +28,9 @@ describe("droneRouteService", () => {
     expect(droneRouteService).toBeDefined();
   });
 
-  it("should corectly list the past calculated routes", () => {
-    expect(droneRouteService.listLastCalculatedRoutes().length).toEqual(10);
-    expect(droneRouteService.listLastCalculatedRoutes()).toMatchObject(
+  it("should corectly list the past calculated routes", async () => {
+    expect((await (await droneRouteService).listLastCalculatedRoutes()).length).toEqual(10);
+    expect(await droneRouteService.listLastCalculatedRoutes()).toMatchObject(
       mockDroneList
     );
   });
