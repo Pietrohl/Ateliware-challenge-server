@@ -27,71 +27,91 @@ function reversePath(
 }
 
 function calcHeuristics(start: Coordinate, end: Coordinate): number {
-  const xAxisIndex: string = "ABCDEFGH";
-  const yDistance = Math.pow(end.yAxis - start.yAxis, 2);
-  const xDistance = Math.pow(
-    xAxisIndex.indexOf(end.xAxis) - xAxisIndex.indexOf(start.xAxis),
-    2
+  return Math.sqrt(
+    Math.pow(end.yAxis - start.yAxis, 2) +
+      Math.pow(
+        "ABCDEFGH".indexOf(end.xAxis) - "ABCDEFGH".indexOf(start.xAxis),
+        2
+      )
   );
-  return Math.sqrt(yDistance + xDistance);
 }
 
-export function calcRoute(board: Chessboard, start: Coordinate, end: Coordinate) {
+export function calcRoute(
+  board: Chessboard,
+  start: Coordinate,
+  end: Coordinate
+) {
   // Implement as a priority queue or hashmap?
-  const openSet: AStarCoord[] = [];
+  const openSet = new Map<string, AStarCoord>();
 
   // Use Map instead of Obj to create hash map?
   const closeSet = new Map<string, AStarCoord>();
 
-  openSet.push({
+  const startKey = start.xAxis + start.yAxis;
+  const endKey = end.xAxis + end.yAxis;
+
+  openSet.set(startKey, {
     ...start,
     gScore: 0,
     fScore: calcHeuristics(start, end) * board.avrgTime,
     previous: null,
-  } as AStarCoord);
+  });
 
-  while (openSet.length > 0) {
-    let currentCoord: AStarCoord;
-    let lowestIndex = 0;
+  while (openSet.size > 0) {
+    let currentCoord: AStarCoord | undefined;
+    let lowestFScore = Infinity;
+    let currentKey: string | undefined;
 
     // Implemet tree or sorted list /priority queue ?
-    for (let i = 0; i < openSet.length; i++) {
-      if (openSet[i].fScore < openSet[lowestIndex].fScore) lowestIndex = i;
+    for (const [key, value] of openSet) {
+      if (value.fScore < lowestFScore) {
+        currentCoord = value;
+        lowestFScore = value.fScore;
+        currentKey = key;
+      }
     }
 
-    currentCoord = openSet[lowestIndex];
+    if (!currentCoord || !currentKey) {
+      break;
+    }
 
-    if ((currentCoord.xAxis + currentCoord.yAxis) === (end.xAxis + end.yAxis))
+    if (currentKey === endKey)
       return {
         path: reversePath(closeSet, currentCoord),
         cost: currentCoord.gScore,
       };
 
-    const adjacentCoord = Object.entries(
-      board.map[currentCoord.xAxis + currentCoord.yAxis]
-    );
+    const adjacentCoord = board.map[currentKey];
 
-    closeSet.set(currentCoord.xAxis + currentCoord.yAxis, currentCoord);
-    openSet.splice(lowestIndex, 1);
+    openSet.delete(currentKey);
+    closeSet.set(currentKey, currentCoord);
 
-    for (let i = 0; i < adjacentCoord.length; i++) {
-      let address = adjacentCoord[i][0];
-      let newCost = currentCoord.gScore + adjacentCoord[i][1];
-      let openIndex = openSet.findIndex(
-        (coord) => coord.xAxis + coord.yAxis === address
-      );
+    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
+      const newGScore = currentCoord.gScore + stepTime;
+      const coord: Coordinate = {
+        xAxis: address[0],
+        yAxis: Number(address[1]),
+      };
 
       //   Case the node was not visited or a faster path is found
-      if ((openSet[openIndex]?.gScore ?? Infinity) > newCost) {
-        const coord = { xAxis: address[0], yAxis: Number(address[1]) };
-
-        openSet.splice(openIndex, 1 + Math.min(0, openIndex), {
-          ...coord,
-          gScore: newCost,
-          fScore: newCost + calcHeuristics(coord, end),
-          previous: currentCoord,
-        });
+      const openCoord = openSet.get(address);
+      if (openCoord && openCoord.gScore <= newGScore) {
+        continue;
       }
+
+      const closeCoord = closeSet.get(address);
+      if (closeCoord && closeCoord.gScore <= newGScore) {
+        continue;
+      }
+
+      const fScore = newGScore + calcHeuristics(coord, end);
+
+      openSet.set(address, {
+        ...coord,
+        gScore: newGScore,
+        fScore,
+        previous: currentCoord,
+      });
     }
   }
 }

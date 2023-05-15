@@ -1,6 +1,4 @@
-import type {
-  Chessboard
-} from "../chessboard/models/chessboard.model";
+import type { Chessboard } from "../chessboard/models/chessboard.model";
 import { calcRoute } from "./A_star.service";
 
 describe("A* Route Algorithm", () => {
@@ -75,6 +73,16 @@ describe("A* Route Algorithm", () => {
   };
 
   it("should return the correct path", () => {
-    expect(calcRoute(board, { xAxis: "A", yAxis: 1 }, { xAxis: "F", yAxis: 4 })).toBeNull();
+    expect(
+      calcRoute(board, { xAxis: "A", yAxis: 1 }, { xAxis: "B", yAxis: 3 })
+    ).toMatchObject({
+      cost: 46.540000000000006,
+      path: [
+        { xAxis: "A", yAxis: 1 },
+        { xAxis: "A", yAxis: 2 },
+        { xAxis: "A", yAxis: 3 },
+        { xAxis: "B", yAxis: 3 },
+      ],
+    });
   });
 });
