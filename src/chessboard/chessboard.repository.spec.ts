@@ -2,10 +2,11 @@ import {
   createChessboardRepository,
   type ChessboardRepository,
 } from "./chessboard.repository";
+import type { ChessboardMap } from "./models/chessboard.model";
 
 describe("chessboard Route Repository", () => {
   let repository: ChessboardRepository;
-  const chessboard = {
+  const chessboard: ChessboardMap = {
     A1: { A2: 11.88, B1: 10.46 },
     A2: { A3: 22, B2: 24.6, A1: 21.77 },
     A3: { A4: 25.63, B3: 12.66, A2: 22.5 },
@@ -79,7 +80,6 @@ describe("chessboard Route Repository", () => {
   it("Should have the chessboard on its state", async () => {
     expect(repository).toBeDefined();
     const response = await repository.getBoard();
-    console.log(await repository.getBoard());
     expect(response).toMatchObject({ map: chessboard });
     expect(response.avrgTime).toBeCloseTo(19.98825892857143);
   });
