@@ -20,7 +20,16 @@ export const createChessboardRepository = () => {
             });
 
             res.on("end", () => {
-              chessboard = JSON.parse(Buffer.concat(data).toString());
+              const map = JSON.parse(Buffer.concat(data).toString());
+              const times: number[] = Object.values(map).flatMap((obj) =>
+                Object.values(obj as {})
+              );
+              const avrgTime =
+                times.reduce(
+                  (accumulator, currentValue) => accumulator + currentValue,
+                  0
+                ) / times.length;
+              chessboard = { avrgTime, map };
               resolve();
             });
           }
