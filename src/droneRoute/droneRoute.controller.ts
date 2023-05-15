@@ -10,12 +10,15 @@ export interface RoutingController {
 export const createDroneRouteController = ({
   droneRouteService: routingService,
 }: AppContainer): RoutingController => {
-  logger.info('initiating drone route controller...')
+  logger.info("initiating drone route controller...");
 
   return {
-    list: (_, res) => {
-      res.json(routingService.listLastCalculatedRoutes());
+    list: async (_, res) => {
+      res.status(200);
+      res.json(await routingService.listLastCalculatedRoutes());
     },
-    findNewPath: () => {},
+    findNewPath: (_req, res) => {
+      res.status(201);
+    },
   };
 };

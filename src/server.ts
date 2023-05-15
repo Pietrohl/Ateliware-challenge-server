@@ -1,4 +1,6 @@
 import type { AwilixContainer } from "awilix";
+import bodyParser from "body-parser";
+import cors from "cors";
 import e from "express";
 import helmet from "helmet";
 import { configureContainer, type AppContainer } from "./container";
@@ -37,8 +39,11 @@ const exitHandler = () => {
 const createServer = async () => {
   logger.info("bootstraping server...");
   const app = e();
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: false }));
+  app.use(cors());
+  app.use(bodyParser.json());
   app.use(morganMiddleware);
+
   const container = await configureContainer();
   attachRoutes(app, container);
 

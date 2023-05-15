@@ -8,7 +8,7 @@ export interface DroneRouteService {
   //   dronePosition: string,
   //   packagePosition: string,
   //   deliveryPosition: string
-  // ) => DroneRoute;
+  // ) => Promise<DroneRoute>;
 }
 
 export const createDroneRouteService = ({
@@ -20,5 +20,8 @@ export const createDroneRouteService = ({
     listLastCalculatedRoutes: async () => {
       return droneRouteRepository.getRoutes(10);
     },
+    // calculateNewRoute: () => {
+
+    // }
   };
 };

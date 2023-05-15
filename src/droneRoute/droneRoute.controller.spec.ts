@@ -19,8 +19,8 @@ describe("droneRouteController", () => {
     time: 1000,
   };
   const routingService: DroneRouteService = {
-    listLastCalculatedRoutes: () => [mockRoute],
-    calculateNewRoute: () => mockRoute,
+    listLastCalculatedRoutes: async () => [mockRoute, mockRoute, mockRoute],
+    // calculateNewRoute: async () => mockRoute,
   };
 
   const mockContainer: AppContainer = {
