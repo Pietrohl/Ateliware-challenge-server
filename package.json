@@ -8,7 +8,7 @@
     "watch:compile": "swc src -w --out-dir dist",
     "watch:dev": "nodemon --watch \"dist/**/*\" -e js ./dist/index.js",
     "build": "swc src -d dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "node dist/index.js NODE_ENV=production",
     "clean": "rm -rf dist",
     "debug": "run-s test:*",
     "test": "jest --detectOpenHandles",

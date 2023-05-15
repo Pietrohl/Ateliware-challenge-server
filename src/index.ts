@@ -3,9 +3,9 @@ import { config } from "./config";
 import { createServer } from "./server";
 import { logger } from "./utils";
 
-function bootstrap(app: Express) {
+async function bootstrap(app: Promise<Express>) {
   try {
-    app.listen(config.PORT, "0.0.0.0", () => {
+    (await app).listen(config.PORT, "0.0.0.0", () => {
       logger.info("running on port: " + config.PORT);
     });
   } catch (error) {

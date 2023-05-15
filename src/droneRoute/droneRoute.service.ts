@@ -1,4 +1,5 @@
 import type { AppContainer } from "../container";
+import { logger } from "../utils";
 import type { DroneRoute } from "./models/droneRoute.model";
 
 export interface DroneRouteService {
@@ -13,8 +14,10 @@ export interface DroneRouteService {
 export const createDroneRouteService = ({
   droneRouteRepository,
 }: AppContainer): DroneRouteService => {
+  logger.info("initiating drone route service...");
+
   return {
-    listLastCalculatedRoutes: () => {
+    listLastCalculatedRoutes: async () => {
       return droneRouteRepository.getRoutes(10);
     },
   };
