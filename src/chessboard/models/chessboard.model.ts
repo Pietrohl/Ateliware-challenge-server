@@ -2,6 +2,6 @@ export type CoordinateStepTimes = {
   [key: string]: number;
 };
 
-export type ChessBoard = {
+export type Chessboard = {
     [key: string]: CoordinateStepTimes
 }

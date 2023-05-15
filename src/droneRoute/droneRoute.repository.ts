@@ -10,7 +10,7 @@ export type DroneRouteRepository = {
 export const createRouteRepository = ({
   connection,
 }: AppContainer): DroneRouteRepository => {
-  logger.info('initiating drone route repository...')
+  logger.info("initiating drone route repository...");
 
   return {
     addRoute: async (route: DroneRoute) => {
