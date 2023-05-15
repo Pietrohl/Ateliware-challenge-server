@@ -73,7 +73,7 @@ describe("chessboard Route Repository", () => {
     H8: { G8: 11.86, H7: 21.53 },
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     repository = createChessboardRepository();
   });
 

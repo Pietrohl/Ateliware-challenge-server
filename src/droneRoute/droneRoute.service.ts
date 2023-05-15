@@ -29,10 +29,18 @@ export const createDroneRouteService = ({
       deliveryCoordinate
     ) => {
       const board = await chessboardRepository.getBoard();
-      const a = calcRoute(board, initialCoordinate, packageCoordinate)!;
-      const b = calcRoute(board, packageCoordinate, deliveryCoordinate)!;
+      const a = calcRoute({
+        board,
+        start: initialCoordinate,
+        end: packageCoordinate,
+      });
+      const b = calcRoute({
+        board,
+        start: packageCoordinate,
+        end: deliveryCoordinate,
+      });
 
-      return {
+      const route = {
         id: 6534323,
         time: a?.cost + b?.cost,
         initialCoordinate,
@@ -40,6 +48,12 @@ export const createDroneRouteService = ({
         deliveryCoordinate,
         path: a.path.slice(0, -1).concat(b.path),
       };
+
+      const status = await droneRouteRepository.addRoute(route);
+
+      if (!status) throw new Error("Unable to add new route");
+
+      return route;
     },
   };
 };

@@ -1,6 +1,7 @@
+import { config as dotenvConfig } from "dotenv";
 import { logger } from "../utils";
 
-require("dotenv").config();
+dotenvConfig();
 
 logger.info("importing configs...");
 
@@ -9,4 +10,3 @@ const config = {
 };
 
 export { config };
-

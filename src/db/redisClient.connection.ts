@@ -5,4 +5,3 @@ const redisClient = createClient();
 redisClient.on("error", (err) => logger.error("Redis Client Error ", err));
 
 export { redisClient };
-

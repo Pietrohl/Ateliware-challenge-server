@@ -11,4 +11,3 @@ const morganMiddleware = morgan(
 );
 
 export { morganMiddleware };
-

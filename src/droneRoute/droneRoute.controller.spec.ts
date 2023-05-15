@@ -11,7 +11,6 @@ describe("droneRouteController", () => {
   let controller: RoutingController;
   const coordinate: Coordinate = { xAxis: "A1", yAxis: 1 };
   const mockRoute: DroneRoute = {
-    id: 1,
     deliveryCoordinate: coordinate,
     initialCoordinate: coordinate,
     packageCoordinate: coordinate,
@@ -19,8 +18,9 @@ describe("droneRouteController", () => {
     time: 1000,
   };
   const routingService: DroneRouteService = {
-    listLastCalculatedRoutes: async () => [mockRoute, mockRoute, mockRoute],
-    // calculateNewRoute: async () => mockRoute,
+    listLastCalculatedRoutes: async () =>
+      Promise.resolve([mockRoute, mockRoute, mockRoute]),
+    calculateNewRoute: async () => Promise.resolve(mockRoute),
   };
 
   const mockContainer: AppContainer = {

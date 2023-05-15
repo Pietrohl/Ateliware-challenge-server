@@ -88,7 +88,7 @@ describe("droneRouteService", () => {
     ],
     time: 1000,
   };
-  const mockDroneList: DroneRoute[] = Array(10).fill(mockRoute);
+  const mockDroneList = Array(10).fill(mockRoute);
   const chessboardRepository = {
     getBoard: () => Promise.resolve({ avrgTime: 17.8, map: chessboard }),
   };
@@ -110,19 +110,17 @@ describe("droneRouteService", () => {
   });
 
   it("should corectly list the past calculated routes", async () => {
-    expect(
-      (await (await droneRouteService).listLastCalculatedRoutes()).length
-    ).toEqual(1);
-    // expect(await droneRouteService.listLastCalculatedRoutes()).toMatchObject(
-    //   mockDroneList
-    // );
+    expect((await droneRouteService.listLastCalculatedRoutes()).length).toEqual(
+      1
+    );
+    expect(await droneRouteService.listLastCalculatedRoutes()).toMatchObject(
+      mockDroneList
+    );
   });
 
   it("Should correctly calcutale the new path", async () => {
     expect(
-      await (
-        await droneRouteService
-      ).calculateNewRoute(
+      await droneRouteService.calculateNewRoute(
         { xAxis: "A1", yAxis: 1 },
         { xAxis: "A2", yAxis: 1 },
         { xAxis: "A3", yAxis: 1 }

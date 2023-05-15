@@ -3,10 +3,10 @@ export type CoordinateStepTimes = {
 };
 
 export type ChessboardMap = {
-    [key: string]: CoordinateStepTimes
-}
+  [key: string]: CoordinateStepTimes;
+};
 
 export type Chessboard = {
-  map: ChessboardMap
-  avrgTime: number
-}
+  map: ChessboardMap;
+  avrgTime: number;
+};

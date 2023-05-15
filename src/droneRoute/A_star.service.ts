@@ -15,7 +15,7 @@ function reversePath(
   let next = previous;
 
   while (next) {
-    const currCoord = closeSet.get(next.xAxis + next.yAxis);
+    const currCoord = closeSet.get(next.xAxis + next.yAxis.toString());
     next = null;
     if (currCoord) {
       next = currCoord.previous;
@@ -36,15 +36,26 @@ function calcHeuristics(start: Coordinate, end: Coordinate): number {
   );
 }
 
-function calcRoute(board: Chessboard, start: Coordinate, end: Coordinate) {
+function calcRoute({
+  board,
+  start,
+  end,
+}: {
+  board: Chessboard;
+  start: Coordinate;
+  end: Coordinate;
+}): {
+  path: Coordinate[];
+  cost: number;
+} {
   // Implement as a priority queue or hashmap?
   const openSet = new Map<string, AStarCoord>();
 
   // Use Map instead of Obj to create hash map?
   const closeSet = new Map<string, AStarCoord>();
 
-  const startKey = start.xAxis + start.yAxis;
-  const endKey = end.xAxis + end.yAxis;
+  const startKey = start.xAxis + start.yAxis.toString();
+  const endKey = end.xAxis + end.yAxis.toString();
 
   openSet.set(startKey, {
     ...start,
@@ -110,7 +121,8 @@ function calcRoute(board: Chessboard, start: Coordinate, end: Coordinate) {
       });
     }
   }
+
+  throw new Error();
 }
 
 export { calcRoute };
-

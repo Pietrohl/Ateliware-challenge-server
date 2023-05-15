@@ -24,7 +24,7 @@ export const createRouteRepository = ({
         return false;
       }
     },
-    getRoutes: async (range: number = 10) => {
+    getRoutes: async (range = 10) => {
       try {
         const routes = await connection.LRANGE(
           "route_list",
@@ -32,7 +32,7 @@ export const createRouteRepository = ({
           Math.min(range - 1, 9)
         );
 
-        return routes.map((item) => JSON.parse(item));
+        return routes.map((item) => JSON.parse(item) as DroneRoute);
       } catch (err) {
         logger.error(err);
         return [];

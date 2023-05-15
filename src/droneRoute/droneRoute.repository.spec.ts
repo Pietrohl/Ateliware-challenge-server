@@ -16,31 +16,27 @@ describe("DroneRoute Repository", () => {
     id: 12,
     path: [coordinate],
     time: 21312,
-  }
+  };
   let list: { [key: string]: string[] };
-  let mockContainer = {
+  const mockContainer = {
     connection: {
-      LPUSH: (key, item) => {
-        list[key as string].push(item as never);
+      LPUSH: (key: string, item: string) => {
+        list[key].push(item as never);
       },
-      LTRIM: (key, start, end) => {
-        list[key as string] = [
-          ...list[key as string].slice(start as number, end as number),
-        ] as string[];
+      LTRIM: (key: string, start: number, end: number) => {
+        list[key] = [...list[key].slice(start, end)] as string[];
       },
-      LRANGE: (key, start, end) => {
-        return list[key as string].slice(start as number, end as number);
+      LRANGE: (key: string, start: number, end: number) => {
+        return list[key].slice(start, end);
       },
     } as unknown as typeof redisClient,
   } as AppContainer;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     list = { route_list: [] };
 
     repository = createRouteRepository(mockContainer);
   });
-
-  afterEach(async () => {});
 
   it("should be defined", () => {
     expect(repository).toBeDefined();
@@ -51,7 +47,7 @@ describe("DroneRoute Repository", () => {
     expect(routes).toMatchObject([]);
   });
   it("shoud add a route correctly", async () => {
-    repository.addRoute(route);
+    await repository.addRoute(route);
     const routes = await repository.getRoutes(10);
 
     expect(routes).toMatchObject([route]);

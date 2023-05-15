@@ -30,7 +30,7 @@ const exitHandler = () => {
   redisClient
     .quit()
     .then(() => process.exit())
-    .catch((error) => {
+    .catch((error: Error) => {
       logger.error("failed to shutdown server stack");
       logger.error(error.stack);
     });
@@ -55,4 +55,3 @@ const createServer = async () => {
 };
 
 export { createServer };
-

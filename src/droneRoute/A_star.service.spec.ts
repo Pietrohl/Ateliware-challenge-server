@@ -74,7 +74,11 @@ describe("A* Route Algorithm", () => {
 
   it("should return the correct path", () => {
     expect(
-      calcRoute(board, { xAxis: "A", yAxis: 1 }, { xAxis: "B", yAxis: 3 })
+      calcRoute({
+        board,
+        start: { xAxis: "A", yAxis: 1 },
+        end: { xAxis: "B", yAxis: 3 },
+      })
     ).toMatchObject({
       cost: 46.540000000000006,
       path: [
