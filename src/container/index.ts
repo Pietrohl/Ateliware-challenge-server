@@ -1,6 +1,6 @@
 import { InjectionMode, asFunction, asValue, createContainer } from "awilix";
 import type { Router } from "express";
-import type { ChessboardRepository } from "../chessboard/chessboard.repository";
+import { createChessboardRepository, type ChessboardRepository } from "../chessboard/chessboard.repository";
 import { redisClient } from "../db/redisClient.connection";
 import {
   createDroneRouteController,
@@ -35,6 +35,7 @@ export const configureContainer = async () => {
   await redisClient.connect();
 
   container.register({ connection: asValue(redisClient) });
+  container.register({chessboardRepository: asFunction( await createChessboardRepository)})
 
   container.register({
     droneRouteService: asFunction(createDroneRouteService),

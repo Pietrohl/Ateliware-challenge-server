@@ -17,8 +17,18 @@ export const createDroneRouteController = ({
       res.status(200);
       res.json(await routingService.listLastCalculatedRoutes());
     },
-    findNewPath: (_req, res) => {
+    findNewPath: async (req, res) => {
+      const { initialCoordinate, packageCoordinate, deliveryCoordinate } =
+        req.body;
       res.status(201);
+
+      res.json({
+        newRoute: await routingService.calculateNewRoute(
+          initialCoordinate,
+          packageCoordinate,
+          deliveryCoordinate
+        ),
+      });
     },
   };
 };

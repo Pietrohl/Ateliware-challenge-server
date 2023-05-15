@@ -36,11 +36,7 @@ function calcHeuristics(start: Coordinate, end: Coordinate): number {
   );
 }
 
-export function calcRoute(
-  board: Chessboard,
-  start: Coordinate,
-  end: Coordinate
-) {
+function calcRoute(board: Chessboard, start: Coordinate, end: Coordinate) {
   // Implement as a priority queue or hashmap?
   const openSet = new Map<string, AStarCoord>();
 
@@ -115,3 +111,6 @@ export function calcRoute(
     }
   }
 }
+
+export { calcRoute };
+
