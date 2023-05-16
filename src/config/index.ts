@@ -6,7 +6,9 @@ dotenvConfig();
 logger.info("importing configs...");
 
 const config = {
-  PORT: 3000,
+  PORT: Number(process.env.PORT) ?? 3000,
+  PUBLIC_FOLDER: process.env.PUBLIC_FOLDER,
+  REDIS_URL: process.env.REDIS_URL,
 };
 
 export { config };
