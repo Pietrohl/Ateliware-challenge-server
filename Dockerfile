@@ -10,6 +10,4 @@ RUN npm ci
 
 RUN npm run build
 
-COPY ./dist ./
-
 CMD ["npm", "start"]
