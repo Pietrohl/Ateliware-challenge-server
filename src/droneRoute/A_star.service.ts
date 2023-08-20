@@ -1,4 +1,8 @@
-import type { Chessboard } from "../chessboard/models/chessboard.model";
+import {
+  isChessboardMap,
+  type Chessboard,
+  type ChessboardMap,
+} from "../chessboard/models/chessboard.model";
 import type { Coordinate } from "./models/coordinate.model";
 
 type AStarCoord = Coordinate & {
@@ -26,25 +30,52 @@ function reversePath(
   return path.reverse();
 }
 
+function getDistance(index1: string, index2: string): number;
+function getDistance(index1: number, index2: number): number;
+function getDistance(index1: string | number, index2: string | number): number {
+  if (typeof index1 === "number" && typeof index2 === "number") {
+    return index1 - index2;
+  }
+
+  if (typeof index1 === "string" && typeof index2 === "string") {
+    const alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    return alph.indexOf(index1) - alph.indexOf(index2);
+  }
+
+  throw new Error("Wrong coordinate types");
+}
+
 function calcHeuristics(start: Coordinate, end: Coordinate): number {
   return Math.sqrt(
-    Math.pow(end.yAxis - start.yAxis, 2) +
-      Math.pow(
-        "ABCDEFGH".indexOf(end.xAxis) - "ABCDEFGH".indexOf(start.xAxis),
-        2
-      )
+    Math.pow(getDistance(end.yAxis, start.yAxis), 2) +
+      Math.pow(getDistance(end.xAxis, start.xAxis), 2)
   );
 }
 
-function calcRoute({
-  board,
-  start,
-  end,
-}: {
+type CalcRouteProp = {
   board: Chessboard;
   start: Coordinate;
   end: Coordinate;
-}): {
+};
+
+type CalcRouteMapProp = {
+  map: ChessboardMap;
+  avrgTime: number;
+  start: Coordinate;
+  end: Coordinate;
+};
+
+function calcRoute(args: CalcRouteProp) {
+  if (isChessboardMap(args.board.map))
+    return calcRouteMap({
+      map: args.board.map,
+      avrgTime: args.board.avrgTime,
+      ...args,
+    });
+}
+
+function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
   path: Coordinate[];
   cost: number;
 } {
@@ -60,7 +91,7 @@ function calcRoute({
   openSet.set(startKey, {
     ...start,
     gScore: 0,
-    fScore: calcHeuristics(start, end) * board.avrgTime,
+    fScore: calcHeuristics(start, end) * avrgTime,
     previous: null,
   });
 
@@ -88,7 +119,7 @@ function calcRoute({
         cost: currentCoord.gScore,
       };
 
-    const adjacentCoord = board.map[currentKey];
+    const adjacentCoord = map[currentKey];
 
     openSet.delete(currentKey);
     closeSet.set(currentKey, currentCoord);
