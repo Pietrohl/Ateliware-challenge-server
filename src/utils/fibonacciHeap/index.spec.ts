@@ -197,8 +197,9 @@ describe("Fibonacci Heap functions", () => {
 
     expect(queue.findMin()).toEqual(2);
     expect(queue.min.key).toEqual(2);
+    expect(queue.min.left?.child?.key).toEqual(4);
     expect(queue.min.left?.key).toEqual(3);
-    expect(queue.min.right?.key).toEqual(4);
+    expect(queue.min.right?.key).toEqual(3);
   });
 
   it("Removing and Inserting multiple asc elements", () => {
@@ -212,6 +213,8 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.extractMin()).toEqual(12);
     expect(queue.extractMin()).toEqual(40);
     expect(queue.extractMin()).toEqual(45);
+    expect(queue.extractMin()).toEqual(200);
+    expect(queue.extractMin()).toEqual(-1);
   });
 
   it("Removing and Inserting multiple desc elements", () => {

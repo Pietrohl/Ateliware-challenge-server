@@ -108,7 +108,6 @@ class FibonacciHeap implements IFibonacciHeap {
       this._removeFromList(curr);
 
       const deg = curr.degree;
-      debugger;
       if (aux[deg]) {
         curr = this._linkHeaps(aux[deg], curr);
         aux[deg] = undefined;
@@ -125,16 +124,20 @@ class FibonacciHeap implements IFibonacciHeap {
     }
 
     debugger;
-    for (const iterator of aux.filter((value) => value)) {
-      const temp = this.min;
-      if (iterator.key < this.min.key) this.min = iterator;
-      this._mergeLists(temp, iterator);
+    let temp: FibNode | null = null;
+    for (const iterator of aux.filter<FibNode>(
+      (value): value is FibNode => !!value
+    )) {
+      debugger;
+      if (iterator?.key < this.min.key) this.min = iterator;
+      temp = this._mergeLists(temp, iterator);
     }
   }
 
   extractMin: () => number = () => {
     const min = this.min;
 
+    debugger;
     if (min.child) {
       let child: FibNode | null = min.child;
       let nextChild;
@@ -155,8 +158,9 @@ class FibonacciHeap implements IFibonacciHeap {
 
     this.noNodes--;
 
+    debugger;
     this._consolidate();
-
+    debugger;
     return min.key;
   };
 
