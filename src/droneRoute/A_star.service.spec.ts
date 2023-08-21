@@ -89,4 +89,25 @@ describe("A* Route Algorithm", () => {
       ],
     });
   });
+
+  it("should return the correct path using queue", () => {
+    expect(
+      calcRoute(
+        {
+          board,
+          start: { xAxis: "A", yAxis: 1 },
+          end: { xAxis: "B", yAxis: 3 },
+        },
+        "fib"
+      )
+    ).toMatchObject({
+      cost: 46.540000000000006,
+      path: [
+        { xAxis: "A", yAxis: 1 },
+        { xAxis: "A", yAxis: 2 },
+        { xAxis: "A", yAxis: 3 },
+        { xAxis: "B", yAxis: 3 },
+      ],
+    });
+  });
 });

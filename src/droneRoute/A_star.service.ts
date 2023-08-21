@@ -1,3 +1,4 @@
+import FibonacciHeap from "../utils/fibonacciHeap";
 import {
   isChessboardMap,
   type Chessboard,
@@ -73,6 +74,84 @@ function calcRoute(args: CalcRouteProp, type: "fib" | "map" = "map") {
       avrgTime: args.board.avrgTime,
       ...args,
     });
+
+  return calcRouteMapQueue({
+    map: args.board.map as ChessboardMap,
+    avrgTime: args.board.avrgTime,
+    ...args,
+  });
+}
+
+function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
+  | {
+      path: Coordinate[];
+      cost: number;
+    }
+  | undefined {
+  // Implement as a priority queue or hashmap?
+  const openSet = new Map<number, AStarCoord>();
+  const openSetQueue = new FibonacciHeap();
+
+  const closeSet = new Map<string, AStarCoord>();
+
+  const endKey = end.xAxis + end.yAxis.toString();
+
+  const startKey = calcHeuristics(start, end) * avrgTime;
+  openSetQueue.insert(startKey);
+  openSet.set(startKey, {
+    ...start,
+    gScore: 0,
+    fScore: startKey,
+    previous: null,
+  });
+
+  while (openSet.size > 0) {
+    const currentKey = openSetQueue.extractMin();
+    const currentCoord = openSet.get(currentKey);
+    if (!currentCoord || !currentKey) {
+      break;
+    }
+
+    const currCoordString = currentCoord.xAxis + currentCoord.yAxis.toString();
+
+    if (currCoordString === endKey)
+      return {
+        path: reversePath(closeSet, currentCoord),
+        cost: currentCoord.gScore,
+      };
+
+    const adjacentCoord = map[currCoordString];
+
+    openSet.delete(currentKey);
+    closeSet.set(currCoordString, currentCoord);
+
+    // Mapping through the new coordinate neighbors
+    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
+      // Calculating new step time to reach the neighbor address coordnate
+      const newGScore = currentCoord.gScore + stepTime;
+      const coord: Coordinate = {
+        xAxis: address[0],
+        yAxis: Number(address[1]),
+      };
+
+      // Case the node was not visited or a faster path is found
+      const closeCoord = closeSet.get(address);
+      if (closeCoord && closeCoord.gScore <= newGScore) {
+        continue;
+      }
+
+      const fScore = newGScore + calcHeuristics(coord, end);
+
+      openSetQueue.insert(fScore);
+      openSet.set(fScore, {
+        ...coord,
+        gScore: newGScore,
+        fScore,
+        previous: currentCoord,
+      });
+    }
+  }
+  // throw new Error();
 }
 
 function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
@@ -155,86 +234,5 @@ function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
 
   throw new Error();
 }
-
-// function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
-//   path: Coordinate[];
-//   cost: number;
-// } {
-//   // Implement as a priority queue or hashmap?
-//   const openSet = new Map<string, AStarCoord>();
-
-//   // Use Map instead of Obj to create hash map?
-//   const closeSet = new Map<string, AStarCoord>();
-
-//   const startKey = start.xAxis + start.yAxis.toString();
-//   const endKey = end.xAxis + end.yAxis.toString();
-
-//   openSet.set(startKey, {
-//     ...start,
-//     gScore: 0,
-//     fScore: calcHeuristics(start, end) * avrgTime,
-//     previous: null,
-//   });
-
-//   while (openSet.size > 0) {
-//     let currentCoord: AStarCoord | undefined;
-//     let lowestFScore = Infinity;
-//     let currentKey: string | undefined;
-
-//     // Implemet tree or sorted list /priority queue ?
-//     for (const [key, value] of openSet) {
-//       if (value.fScore < lowestFScore) {
-//         currentCoord = value;
-//         lowestFScore = value.fScore;
-//         currentKey = key;
-//       }
-//     }
-
-//     if (!currentCoord || !currentKey) {
-//       break;
-//     }
-
-//     if (currentKey === endKey)
-//       return {
-//         path: reversePath(closeSet, currentCoord),
-//         cost: currentCoord.gScore,
-//       };
-
-//     const adjacentCoord = map[currentKey];
-
-//     openSet.delete(currentKey);
-//     closeSet.set(currentKey, currentCoord);
-
-//     for (const [address, stepTime] of Object.entries(adjacentCoord)) {
-//       const newGScore = currentCoord.gScore + stepTime;
-//       const coord: Coordinate = {
-//         xAxis: address[0],
-//         yAxis: Number(address[1]),
-//       };
-
-//       //   Case the node was not visited or a faster path is found
-//       const openCoord = openSet.get(address);
-//       if (openCoord && openCoord.gScore <= newGScore) {
-//         continue;
-//       }
-
-//       const closeCoord = closeSet.get(address);
-//       if (closeCoord && closeCoord.gScore <= newGScore) {
-//         continue;
-//       }
-
-//       const fScore = newGScore + calcHeuristics(coord, end);
-
-//       openSet.set(address, {
-//         ...coord,
-//         gScore: newGScore,
-//         fScore,
-//         previous: currentCoord,
-//       });
-//     }
-//   }
-
-//   throw new Error();
-// }
 
 export { calcRoute, calcRouteMap };
