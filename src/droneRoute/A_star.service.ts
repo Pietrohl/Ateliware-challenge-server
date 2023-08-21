@@ -82,6 +82,8 @@ function calcRoute(args: CalcRouteProp, type: "fib" | "map" = "map") {
   });
 }
 
+const queue = new FibonacciHeap();
+
 function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
   | {
       path: Coordinate[];
@@ -90,7 +92,8 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
   | undefined {
   // Implement as a priority queue or hashmap?
   const openSet = new Map<number, AStarCoord>();
-  const openSetQueue = new FibonacciHeap();
+  queue.clear();
+  const openSetQueue = queue;
 
   const closeSet = new Map<string, AStarCoord>();
 
@@ -105,14 +108,24 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
     previous: null,
   });
 
-  while (openSet.size > 0) {
-    const currentKey = openSetQueue.extractMin();
-    const currentCoord = openSet.get(currentKey);
+  while (openSetQueue.noNodes > 0) {
+    let currentKey;
+    let currentCoord: AStarCoord | undefined;
+    let currCoordString = "";
+
+    do {
+      currentKey = openSetQueue.extractMin();
+      currentCoord = openSet.get(currentKey);
+
+      if (!currentCoord || !currentKey) {
+        break;
+      }
+      currCoordString = currentCoord.xAxis + currentCoord.yAxis.toString();
+    } while (closeSet.has(currCoordString));
+
     if (!currentCoord || !currentKey) {
       break;
     }
-
-    const currCoordString = currentCoord.xAxis + currentCoord.yAxis.toString();
 
     if (currCoordString === endKey)
       return {
@@ -134,7 +147,7 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
         yAxis: Number(address[1]),
       };
 
-      // Case the node was not visited or a faster path is found
+      // Case a faster path is found
       const closeCoord = closeSet.get(address);
       if (closeCoord && closeCoord.gScore <= newGScore) {
         continue;
@@ -151,7 +164,8 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
       });
     }
   }
-  // throw new Error();
+
+  throw new Error();
 }
 
 function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
@@ -210,7 +224,7 @@ function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
         yAxis: Number(address[1]),
       };
 
-      //   Case the node was not visited or a faster path is found
+      // Case the node was not visited or a faster path is found
       const openCoord = openSet.get(address);
       if (openCoord && openCoord.gScore <= newGScore) {
         continue;

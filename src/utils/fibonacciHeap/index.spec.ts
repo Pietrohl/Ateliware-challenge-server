@@ -202,7 +202,7 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.min.right?.key).toEqual(3);
   });
 
-  it("Removing and Inserting multiple asc elements", () => {
+  it("should still removing and Inserting multiple asc elements", () => {
     queue.insert(6);
     queue.insert(12);
     queue.insert(40);
@@ -217,7 +217,7 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.extractMin()).toEqual(-1);
   });
 
-  it("Removing and Inserting multiple desc elements", () => {
+  it("should still removing and Inserting multiple desc elements", () => {
     queue.insert(200);
     queue.insert(40);
     queue.insert(45);
@@ -230,7 +230,7 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.extractMin()).toEqual(45);
   });
 
-  it("Removing and Inserting multiple elements at random", () => {
+  it("should still removing and Inserting multiple elements at random", () => {
     queue.insert(45);
     queue.insert(12);
     queue.insert(6);
@@ -241,5 +241,66 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.extractMin()).toEqual(12);
     expect(queue.extractMin()).toEqual(40);
     expect(queue.extractMin()).toEqual(45);
+  });
+
+  it("should still removing and Inserting multiple elements unsyc", () => {
+    queue.insert(45);
+    queue.insert(12);
+    expect(queue.extractMin()).toEqual(12);
+    queue.insert(6);
+    expect(queue.extractMin()).toEqual(6);
+    queue.insert(40);
+    queue.insert(200);
+
+    expect(queue.extractMin()).toEqual(40);
+    expect(queue.extractMin()).toEqual(45);
+    expect(queue.extractMin()).toEqual(200);
+
+    queue.insert(9);
+    queue.insert(11);
+    queue.insert(5);
+    queue.insert(6);
+    queue.insert(15);
+    queue.insert(7);
+    queue.insert(8);
+    expect(queue.extractMin()).toEqual(5);
+    queue.insert(10);
+    queue.insert(1);
+    queue.insert(12);
+    queue.insert(2);
+    queue.insert(4);
+    queue.insert(3);
+    queue.insert(14);
+    queue.insert(13);
+    queue.insert(16);
+    queue.insert(17);
+
+    expect(queue.extractMin()).toEqual(1);
+
+    queue.insert(100);
+    queue.insert(101);
+    queue.insert(102);
+    queue.insert(103);
+    queue.insert(104);
+    queue.insert(105);
+    queue.insert(106);
+    queue.insert(107);
+    queue.insert(108);
+    queue.insert(109);
+    queue.insert(110);
+    queue.insert(111);
+    queue.insert(112);
+    queue.insert(113);
+    queue.insert(114);
+
+    expect(queue.extractMin()).toEqual(2);
+    expect(queue.extractMin()).toEqual(3);
+    expect(queue.extractMin()).toEqual(4);
+    expect(queue.extractMin()).toEqual(6);
+    expect(queue.extractMin()).toEqual(7);
+    expect(queue.extractMin()).toEqual(8);
+    expect(queue.extractMin()).toEqual(9);
+    expect(queue.extractMin()).toEqual(10);
+    expect(queue.extractMin()).toEqual(11);
   });
 });
