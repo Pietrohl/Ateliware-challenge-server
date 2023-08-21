@@ -4,6 +4,7 @@ interface IFibonacciHeap {
   deleteMin: () => void;
   insert: (val: number) => void;
   decreaseKey: () => void;
+  clear: () => void;
 }
 
 export class FibNode {
@@ -29,6 +30,11 @@ class FibonacciHeap implements IFibonacciHeap {
   noNodes: number;
 
   constructor() {
+    this.min = new FibNode();
+    this.noNodes = 0;
+  }
+
+  clear() {
     this.min = new FibNode();
     this.noNodes = 0;
   }
@@ -108,8 +114,9 @@ class FibonacciHeap implements IFibonacciHeap {
       this._removeFromList(curr);
 
       const deg = curr.degree;
-      if (aux[deg]) {
-        curr = this._linkHeaps(aux[deg], curr);
+      const auxNode = aux[deg];
+      if (auxNode) {
+        curr = this._linkHeaps(auxNode, curr);
         aux[deg] = undefined;
       } else {
         aux[curr.degree] = curr;
@@ -123,12 +130,10 @@ class FibonacciHeap implements IFibonacciHeap {
       }
     }
 
-    debugger;
     let temp: FibNode | null = null;
     for (const iterator of aux.filter<FibNode>(
       (value): value is FibNode => !!value
     )) {
-      debugger;
       if (iterator?.key < this.min.key) this.min = iterator;
       temp = this._mergeLists(temp, iterator);
     }
@@ -137,7 +142,6 @@ class FibonacciHeap implements IFibonacciHeap {
   extractMin: () => number = () => {
     const min = this.min;
 
-    debugger;
     if (min.child) {
       let child: FibNode | null = min.child;
       let nextChild;
@@ -158,9 +162,7 @@ class FibonacciHeap implements IFibonacciHeap {
 
     this.noNodes--;
 
-    debugger;
     this._consolidate();
-    debugger;
     return min.key;
   };
 
