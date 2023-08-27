@@ -146,7 +146,8 @@ describe("Fibonacci heap private methods", () => {
     expect(queue.min?.child?.child?.key).toBe(3);
   });
 });
-describe("Fibonacci Heap functions", () => {
+
+describe("Fibonacci Heap methods", () => {
   let queue: FibonacciHeap<{ value: number }>;
 
   beforeEach(() => {
@@ -306,5 +307,25 @@ describe("Fibonacci Heap functions", () => {
     expect(queue.extractMin()).toEqual({ value: 9 });
     expect(queue.extractMin()).toEqual({ value: 10 });
     expect(queue.extractMin()).toEqual({ value: 11 });
+  });
+
+  it("shoud decrease key correctly", () => {
+    queue.insert(45, { value: 45 });
+    queue.insert(12, { value: 12 });
+    queue.insert(6, { value: 6 });
+    queue.insert(40, { value: 40 });
+
+    const node = queue.insert(200, { value: 200 });
+
+    queue.decreaseKey(node, 1);
+    queue.insert(2, { value: 2 });
+
+    expect(queue.extractMin()).toEqual({ value: 200 });
+    expect(queue.extractMin()).toEqual({ value: 2 });
+    expect(queue.extractMin()).toEqual({ value: 6 });
+    expect(queue.extractMin()).toEqual({ value: 12 });
+    expect(queue.extractMin()).toEqual({ value: 40 });
+    expect(queue.extractMin()).toEqual({ value: 45 });
+    expect(queue.extractMin()).toBeUndefined();
   });
 });

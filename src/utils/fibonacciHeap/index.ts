@@ -3,7 +3,7 @@ interface IFibonacciHeap<T> {
   extractMin: () => T | undefined;
   deleteMin: () => void;
   insert: (val: number, value: T) => FibNode<T>;
-  decreaseKey: (node: FibNode<T>, newKey: number, val?: T) => void;
+  decreaseKey: (node: FibNode<T>, newKey: number, val?: T) => FibNode<T>;
   clear: () => void;
 }
 
@@ -15,6 +15,7 @@ export class FibNode<T> {
   key: number;
   degree: number;
   value: T;
+  isMarked: boolean;
 
   constructor(value: T, key = -1) {
     this.parent = null; // Assign data
@@ -23,6 +24,7 @@ export class FibNode<T> {
     this.right = null;
     this.key = key;
     this.degree = 0;
+    this.isMarked = false;
     this.value = value;
   }
 }
@@ -104,6 +106,7 @@ class FibonacciHeap<T> implements IFibonacciHeap<T> {
     root.child = this._mergeLists(nodeY, root.child);
     nodeY.parent = root;
     root.degree += 1;
+    nodeY.isMarked = false;
 
     return root;
   }
@@ -171,11 +174,57 @@ class FibonacciHeap<T> implements IFibonacciHeap<T> {
     return min.value;
   }
 
-  decreaseKey: () => void;
   merge: () => void;
 
   deleteMin() {
     this.extractMin();
+  }
+
+  decreaseKey(node: FibNode<T>, newKey: number, val?: T) {
+    if (newKey > node.key) return node;
+
+    node.key = newKey;
+    if (val) node.value = val;
+
+    if (node.parent && node.key < node.parent.key) {
+      this._cut(node);
+      this._cascadingCut(node.parent);
+    }
+
+    if (!this.min || node.key < this.min?.key) {
+      this.min = node;
+    }
+
+    return node;
+  }
+
+  protected _cut(node: FibNode<T>) {
+    if (node.parent) {
+      if (node.left === node) {
+        node.parent.child = null;
+      } else {
+        node.parent.child = node.left;
+      }
+      node.parent.degree--;
+      node.parent = null;
+    }
+
+    this._removeFromList(node);
+    this._insert(node);
+
+    node.isMarked = false;
+  }
+
+  protected _cascadingCut(node?: FibNode<T>) {
+    const parent = node?.parent;
+    if (!parent) return;
+
+    if (node.isMarked) {
+      this._cut(node);
+      this._cascadingCut(parent);
+    } else {
+      node.isMarked = true;
+    }
   }
 }
 
