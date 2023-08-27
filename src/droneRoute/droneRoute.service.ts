@@ -40,6 +40,8 @@ export const createDroneRouteService = ({
         end: deliveryCoordinate,
       });
 
+      if (!a || !b) throw new Error();
+
       const route = {
         id: 6534323,
         time: a?.cost + b?.cost,
