@@ -1,60 +1,63 @@
-interface IFibonacciHeap {
-  findMin: () => number;
-  extractMin: () => number;
+interface IFibonacciHeap<T> {
+  findMin: () => T | undefined;
+  extractMin: () => T | undefined;
   deleteMin: () => void;
-  insert: (val: number) => void;
-  decreaseKey: () => void;
+  insert: (val: number, value: T) => FibNode<T>;
+  decreaseKey: (node: FibNode<T>, newKey: number, val?: T) => void;
   clear: () => void;
 }
 
-export class FibNode {
-  parent: null | FibNode;
-  child: null | FibNode;
-  left: null | FibNode;
-  right: null | FibNode;
+export class FibNode<T> {
+  parent: null | FibNode<T>;
+  child: null | FibNode<T>;
+  left: null | FibNode<T>;
+  right: null | FibNode<T>;
   key: number;
   degree: number;
+  value: T;
 
-  constructor(key = -1) {
+  constructor(value: T, key = -1) {
     this.parent = null; // Assign data
     this.child = null; // Initialize next as null
     this.left = null;
     this.right = null;
     this.key = key;
     this.degree = 0;
+    this.value = value;
   }
 }
 
-class FibonacciHeap implements IFibonacciHeap {
-  min: FibNode;
+class FibonacciHeap<T> implements IFibonacciHeap<T> {
+  min: FibNode<T> | null;
   noNodes: number;
 
   constructor() {
-    this.min = new FibNode();
+    this.min = null;
     this.noNodes = 0;
   }
 
   clear() {
-    this.min = new FibNode();
+    this.min = null;
     this.noNodes = 0;
   }
 
   findMin() {
-    return this.min.key;
+    return this.min?.value;
   }
 
-  insert(key: number) {
-    const newNode = new FibNode(key);
+  insert(key: number, value: T) {
+    const newNode = new FibNode<T>(value, key);
     this._insert(newNode);
+    return newNode;
   }
-  private _insert(newNode: FibNode) {
+  private _insert(newNode: FibNode<T>) {
     newNode.left = newNode;
     newNode.right = newNode;
 
-    if (this.min.key !== -1) {
+    if (this.min?.key !== -1) {
       const temp = this.min;
       this.min = this._mergeLists(this.min, newNode) ?? temp;
-      if (newNode.key < temp.key) {
+      if (!temp || newNode.key < temp.key) {
         this.min = newNode;
       } else {
         this.min = temp;
@@ -65,7 +68,7 @@ class FibonacciHeap implements IFibonacciHeap {
     this.noNodes++;
   }
 
-  protected _removeFromList(node: FibNode) {
+  protected _removeFromList(node: FibNode<T>) {
     if (node.left) node.left.right = node.right;
     if (node.right) node.right.left = node.left;
     node.left = node;
@@ -73,9 +76,9 @@ class FibonacciHeap implements IFibonacciHeap {
   }
 
   protected _mergeLists(
-    nodeX: FibNode | null,
-    nodeY: FibNode | null
-  ): FibNode | null {
+    nodeX: FibNode<T> | null,
+    nodeY: FibNode<T> | null
+  ): FibNode<T> | null {
     if (!nodeX && !nodeY) return null;
 
     if (!nodeX) return nodeY;
@@ -91,7 +94,7 @@ class FibonacciHeap implements IFibonacciHeap {
     return nodeX;
   }
 
-  protected _linkHeaps(nodeX: FibNode, nodeY: FibNode): FibNode {
+  protected _linkHeaps(nodeX: FibNode<T>, nodeY: FibNode<T>): FibNode<T> {
     let root = nodeX;
     if (root.key > nodeY.key) {
       root = nodeY;
@@ -106,10 +109,10 @@ class FibonacciHeap implements IFibonacciHeap {
   }
 
   protected _consolidate() {
-    const aux: Array<FibNode | undefined> = [];
+    const aux: Array<FibNode<T> | undefined> = [];
 
-    let curr: FibNode | null = this.min;
-    let mainList: FibNode | null | undefined = curr.left;
+    let curr: FibNode<T> | null = this.min;
+    let mainList: FibNode<T> | null | undefined = curr?.left;
     while (curr) {
       this._removeFromList(curr);
 
@@ -130,20 +133,22 @@ class FibonacciHeap implements IFibonacciHeap {
       }
     }
 
-    let temp: FibNode | null = null;
-    for (const iterator of aux.filter<FibNode>(
-      (value): value is FibNode => !!value
+    let temp: FibNode<T> | null = null;
+    for (const iterator of aux.filter<FibNode<T>>(
+      (value): value is FibNode<T> => !!value
     )) {
-      if (iterator?.key < this.min.key) this.min = iterator;
+      if (!this.min || iterator?.key < this.min.key) this.min = iterator;
       temp = this._mergeLists(temp, iterator);
     }
   }
 
-  extractMin: () => number = () => {
+  extractMin() {
     const min = this.min;
 
+    if (!min) return;
+
     if (min.child) {
-      let child: FibNode | null = min.child;
+      let child: FibNode<T> | null = min.child;
       let nextChild;
       do {
         nextChild = child.left;
@@ -154,7 +159,7 @@ class FibonacciHeap implements IFibonacciHeap {
     }
 
     if (min === min.left || min.left === null) {
-      this.min = new FibNode();
+      this.min = null;
     } else {
       this.min = min.left;
       this._removeFromList(min);
@@ -163,8 +168,8 @@ class FibonacciHeap implements IFibonacciHeap {
     this.noNodes--;
 
     this._consolidate();
-    return min.key;
-  };
+    return min.value;
+  }
 
   decreaseKey: () => void;
   merge: () => void;
