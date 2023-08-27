@@ -5,6 +5,9 @@ interface IFibonacciHeap<T> {
   insert: (val: number, value: T) => FibNode<T>;
   decreaseKey: (node: FibNode<T>, newKey: number, val?: T) => FibNode<T>;
   clear: () => void;
+  merge: (heap: IFibonacciHeap<T>) => void;
+  noNodes: number;
+  min: FibNode<T> | null;
 }
 
 export class FibNode<T> {
@@ -174,8 +177,6 @@ class FibonacciHeap<T> implements IFibonacciHeap<T> {
     return min.value;
   }
 
-  merge: () => void;
-
   deleteMin() {
     this.extractMin();
   }
@@ -225,6 +226,16 @@ class FibonacciHeap<T> implements IFibonacciHeap<T> {
     } else {
       node.isMarked = true;
     }
+  }
+
+  merge(heap: IFibonacciHeap<T>) {
+    if (this.min && heap.min && heap.min?.key < this.min?.key) {
+      this.min = heap.min;
+    }
+
+    this._mergeLists(this.min, heap.min);
+
+    this.noNodes += heap.noNodes;
   }
 }
 

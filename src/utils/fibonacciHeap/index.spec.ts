@@ -1,3 +1,4 @@
+import e from "express";
 import FibonacciHeap, { FibNode } from "./index";
 
 describe("Fibonacci heap private methods", () => {
@@ -47,7 +48,7 @@ describe("Fibonacci heap private methods", () => {
 
     root2 = new FibNode<{ value: number }>({ value: 4 }, 4);
     const node2_2 = new FibNode<{ value: number }>({ value: 5 }, 5);
-    const node3_2 = new FibNode<{ value: number }>({ value: 6 }, 6);
+    const node3_2 = new FibNode<{ value: number }>({ value: 3 }, 6);
 
     root2.left = node2_2;
     node2_2.left = node3_2;
@@ -327,5 +328,23 @@ describe("Fibonacci Heap methods", () => {
     expect(queue.extractMin()).toEqual({ value: 40 });
     expect(queue.extractMin()).toEqual({ value: 45 });
     expect(queue.extractMin()).toBeUndefined();
+  });
+
+  it("should merge correctly", () => {
+    const auxQueue = new FibonacciHeap<{ value: number }>();
+
+    queue.insert(1, { value: 1 });
+    queue.insert(20, { value: 20 });
+    queue.insert(30, { value: 30 });
+    queue.insert(40, { value: 40 });
+
+    auxQueue.insert(5, { value: 5 });
+    auxQueue.insert(10, { value: 10 });
+    auxQueue.insert(15, { value: 15 });
+
+    queue.merge(auxQueue);
+    expect(queue.extractMin()).toEqual({ value: 1 });
+    expect(queue.extractMin()).toEqual({ value: 5 });
+    expect(queue.extractMin()).toEqual({ value: 10 });
   });
 });
