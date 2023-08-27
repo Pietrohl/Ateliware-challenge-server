@@ -5,6 +5,7 @@ import {
   type ChessboardMap,
 } from "../chessboard/models/chessboard.model";
 import type { Coordinate } from "./models/coordinate.model";
+import { BinaryHeap } from "../utils/binaryHeap";
 
 type AStarCoord = Coordinate & {
   gScore: number;
@@ -67,29 +68,44 @@ type CalcRouteMapProp = {
   end: Coordinate;
 };
 
-function calcRoute(args: CalcRouteProp, type: "fib" | "map" = "map") {
-  if (isChessboardMap(args.board.map) && type === "map")
-    return calcRouteMap({
-      map: args.board.map,
+function calcRoute(
+  args: CalcRouteProp,
+  type: "binary" | "fib" | "array" = "array"
+) {
+  if (type === "binary")
+    return calcRouteMapBinaryQueue({
+      map: args.board.map as ChessboardMap,
       avrgTime: args.board.avrgTime,
       ...args,
     });
 
-  return calcRouteMapQueue({
+  if (type === "fib")
+    return calcRouteMapFibonacci({
+      map: args.board.map as ChessboardMap,
+      avrgTime: args.board.avrgTime,
+      ...args,
+    });
+
+  return calcRouteArray({
     map: args.board.map as ChessboardMap,
     avrgTime: args.board.avrgTime,
     ...args,
   });
 }
+const openSetQueueFib = new FibonacciHeap<AStarCoord>();
 
-function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
+function calcRouteMapFibonacci({
+  map,
+  avrgTime,
+  start,
+  end,
+}: CalcRouteMapProp):
   | {
       path: Coordinate[];
       cost: number;
     }
   | undefined {
-  // Implement as a priority queue or hashmap?
-  const openSetQueue = new FibonacciHeap<AStarCoord>();
+  openSetQueueFib.clear();
   const openSet = new Map<string, FibNode<AStarCoord>>();
 
   const closeSet = new Map<string, AStarCoord>();
@@ -99,7 +115,7 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
   const startHeur = calcHeuristics(start, end) * avrgTime;
   const startKey = start.xAxis + start.yAxis.toString();
 
-  const startNode = openSetQueue.insert(startHeur, {
+  const startNode = openSetQueueFib.insert(startHeur, {
     ...start,
     gScore: 0,
     fScore: startHeur,
@@ -108,8 +124,8 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
 
   openSet.set(startKey, startNode);
 
-  while (openSetQueue.noNodes > 0) {
-    const currentCoord: AStarCoord | undefined = openSetQueue.extractMin();
+  while (openSetQueueFib.noNodes > 0) {
+    const currentCoord: AStarCoord | undefined = openSetQueueFib.extractMin();
 
     if (!currentCoord) {
       break;
@@ -151,7 +167,7 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
       const openCoord = openSet.get(address);
       if (openCoord) {
         if (openCoord.value.gScore > newGScore) {
-          openSetQueue.decreaseKey(openCoord, fScore, {
+          openSetQueueFib.decreaseKey(openCoord, fScore, {
             ...coord,
             gScore: newGScore,
             fScore,
@@ -162,7 +178,7 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
         continue;
       }
 
-      const queuedNode = openSetQueue.insert(fScore, {
+      const queuedNode = openSetQueueFib.insert(fScore, {
         ...coord,
         gScore: newGScore,
         fScore,
@@ -176,7 +192,7 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
   throw new Error();
 }
 
-function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
+function calcRouteArray({ map, avrgTime, start, end }: CalcRouteMapProp): {
   path: Coordinate[];
   cost: number;
 } {
@@ -257,4 +273,112 @@ function calcRouteMap({ map, avrgTime, start, end }: CalcRouteMapProp): {
   throw new Error();
 }
 
-export { calcRoute, calcRouteMap };
+const openSetQueue = new BinaryHeap<AStarCoord>();
+
+function calcRouteMapBinaryQueue({
+  map,
+  avrgTime,
+  start,
+  end,
+}: CalcRouteMapProp):
+  | {
+      path: Coordinate[];
+      cost: number;
+    }
+  | undefined {
+  openSetQueue.clear();
+
+  const openSet = new Map<string, AStarCoord>();
+  const closeSet = new Map<string, AStarCoord>();
+
+  const endKey = end.xAxis + end.yAxis.toString();
+  const startKey = start.xAxis + start.yAxis.toString();
+
+  const startFScore = calcHeuristics(start, end) * avrgTime;
+
+  const startNode = {
+    ...start,
+    gScore: 0,
+    fScore: startFScore,
+    previous: null,
+  };
+
+  openSetQueue.insert(startFScore, startNode);
+  openSet.set(startKey, startNode);
+
+  while (openSetQueue.noNodes > 0) {
+    const currentCoord: AStarCoord | undefined = openSetQueue.extractMin();
+
+    if (!currentCoord) {
+      break;
+    }
+
+    const currentKey = currentCoord.xAxis + currentCoord.yAxis.toString();
+
+    if (currentKey === endKey)
+      return {
+        path: reversePath(closeSet, currentCoord),
+        cost: currentCoord.gScore,
+      };
+
+    openSet.delete(currentKey);
+    closeSet.set(currentKey, currentCoord);
+
+    const adjacentCoord = map[currentKey];
+
+    // Mapping through the new coordinate neighbors
+    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
+      // Calculating new step time to reach the neighbor address coordnate
+      const newGScore = currentCoord.gScore + stepTime;
+      const coord: Coordinate = {
+        xAxis: address[0],
+        yAxis: Number(address[1]),
+      };
+
+      debugger;
+
+      // Case a faster path was already found to a visited node
+      const closeCoord = closeSet.get(address);
+      if (closeCoord && closeCoord.gScore <= newGScore) {
+        continue;
+      }
+
+      const fScore = newGScore + calcHeuristics(coord, end);
+
+      // Case a faster path is found to a queued node
+      const openCoord = openSet.get(address);
+
+      if (openCoord) {
+        if (openCoord.gScore > newGScore) {
+          const queuedCoord = {
+            ...coord,
+            gScore: newGScore,
+            fScore,
+            previous: currentCoord,
+          };
+
+          const index = openSetQueue.values.findIndex(
+            (node) => node.value === openCoord
+          );
+          openSetQueue.decreaseKey(index, fScore, queuedCoord);
+          openSet.set(address, queuedCoord);
+        }
+
+        continue;
+      }
+
+      const queuedNode = {
+        ...coord,
+        gScore: newGScore,
+        fScore,
+        previous: currentCoord,
+      };
+      openSetQueue.insert(fScore, queuedNode);
+      openSet.set(address, queuedNode);
+    }
+  }
+
+  throw new Error();
+}
+
+export { calcRoute };
