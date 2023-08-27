@@ -1,4 +1,4 @@
-import FibonacciHeap from "../utils/fibonacciHeap";
+import FibonacciHeap, { FibNode } from "../utils/fibonacciHeap";
 import {
   isChessboardMap,
   type Chessboard,
@@ -82,8 +82,6 @@ function calcRoute(args: CalcRouteProp, type: "fib" | "map" = "map") {
   });
 }
 
-const queue = new FibonacciHeap();
-
 function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
   | {
       path: Coordinate[];
@@ -91,52 +89,44 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
     }
   | undefined {
   // Implement as a priority queue or hashmap?
-  const openSet = new Map<number, AStarCoord>();
-  queue.clear();
-  const openSetQueue = queue;
+  const openSetQueue = new FibonacciHeap<AStarCoord>();
+  const openSet = new Map<string, FibNode<AStarCoord>>();
 
   const closeSet = new Map<string, AStarCoord>();
 
   const endKey = end.xAxis + end.yAxis.toString();
 
-  const startKey = calcHeuristics(start, end) * avrgTime;
-  openSetQueue.insert(startKey);
-  openSet.set(startKey, {
+  const startHeur = calcHeuristics(start, end) * avrgTime;
+  const startKey = start.xAxis + start.yAxis.toString();
+
+  const startNode = openSetQueue.insert(startHeur, {
     ...start,
     gScore: 0,
-    fScore: startKey,
+    fScore: startHeur,
     previous: null,
   });
 
+  openSet.set(startKey, startNode);
+
   while (openSetQueue.noNodes > 0) {
-    let currentKey;
-    let currentCoord: AStarCoord | undefined;
-    let currCoordString = "";
+    const currentCoord: AStarCoord | undefined = openSetQueue.extractMin();
 
-    do {
-      currentKey = openSetQueue.extractMin();
-      currentCoord = openSet.get(currentKey);
-
-      if (!currentCoord || !currentKey) {
-        break;
-      }
-      currCoordString = currentCoord.xAxis + currentCoord.yAxis.toString();
-    } while (closeSet.has(currCoordString));
-
-    if (!currentCoord || !currentKey) {
+    if (!currentCoord) {
       break;
     }
 
-    if (currCoordString === endKey)
+    const currentKey = currentCoord.xAxis + currentCoord.yAxis.toString();
+
+    if (currentKey === endKey)
       return {
         path: reversePath(closeSet, currentCoord),
         cost: currentCoord.gScore,
       };
 
-    const adjacentCoord = map[currCoordString];
-
     openSet.delete(currentKey);
-    closeSet.set(currCoordString, currentCoord);
+    closeSet.set(currentKey, currentCoord);
+
+    const adjacentCoord = map[currentKey];
 
     // Mapping through the new coordinate neighbors
     for (const [address, stepTime] of Object.entries(adjacentCoord)) {
@@ -147,7 +137,9 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
         yAxis: Number(address[1]),
       };
 
-      // Case a faster path is found
+      debugger;
+
+      // Case a faster path was already found to a visited node
       const closeCoord = closeSet.get(address);
       if (closeCoord && closeCoord.gScore <= newGScore) {
         continue;
@@ -155,13 +147,29 @@ function calcRouteMapQueue({ map, avrgTime, start, end }: CalcRouteMapProp):
 
       const fScore = newGScore + calcHeuristics(coord, end);
 
-      openSetQueue.insert(fScore);
-      openSet.set(fScore, {
+      // Case a faster path is found to a queued node
+      const openCoord = openSet.get(address);
+      if (openCoord) {
+        if (openCoord.value.gScore > newGScore) {
+          openSetQueue.decreaseKey(openCoord, fScore, {
+            ...coord,
+            gScore: newGScore,
+            fScore,
+            previous: currentCoord,
+          });
+        }
+
+        continue;
+      }
+
+      const queuedNode = openSetQueue.insert(fScore, {
         ...coord,
         gScore: newGScore,
         fScore,
         previous: currentCoord,
       });
+
+      openSet.set(address, queuedNode);
     }
   }
 
