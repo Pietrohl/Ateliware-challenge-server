@@ -1,4 +1,4 @@
 export type Coordinate = {
-  xAxis: string;
-  yAxis: number;
+  x: number | string;
+  y: number;
 };

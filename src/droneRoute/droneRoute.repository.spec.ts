@@ -8,7 +8,7 @@ import type { Coordinate } from "./models/coordinate.model";
 
 describe("DroneRoute Repository", () => {
   let repository: DroneRouteRepository;
-  const coordinate: Coordinate = { xAxis: "A1", yAxis: 1 };
+  const coordinate: Coordinate = { x: "A1", y: 1 };
   const route = {
     deliveryCoordinate: coordinate,
     initialCoordinate: coordinate,

@@ -9,7 +9,7 @@ import type { DroneRoute } from "./models/droneRoute.model";
 
 describe("droneRouteController", () => {
   let controller: RoutingController;
-  const coordinate: Coordinate = { xAxis: "A1", yAxis: 1 };
+  const coordinate: Coordinate = { x: "A1", y: 1 };
   const mockRoute: DroneRoute = {
     deliveryCoordinate: coordinate,
     initialCoordinate: coordinate,

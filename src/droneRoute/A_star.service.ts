@@ -2,121 +2,145 @@ import FibonacciHeap, { FibNode } from "../utils/fibonacciHeap";
 import {
   isChessboardMap,
   type Chessboard,
-  type ChessboardMap,
+  type GraphNode,
 } from "../chessboard/models/chessboard.model";
-import type { Coordinate } from "./models/coordinate.model";
 import { BinaryHeap } from "../utils/binaryHeap";
 
-type AStarCoord = Coordinate & {
+type AStarNode<T> = T & {
   gScore: number;
   fScore: number;
-  previous: Coordinate | null;
+  previous: AStarNode<T> | null;
 };
 
 function reversePath(
-  closeSet: Map<string, AStarCoord>,
-  { xAxis, yAxis, previous }: AStarCoord
-): Coordinate[] {
-  const path: Coordinate[] = [{ xAxis, yAxis }];
-  let next = previous;
+  closeSet: Map<string, AStarNode<{ key: string }>>,
+  args: AStarNode<{ key: string }>
+): string[] {
+  const path: string[] = [args.key];
+  let next = args.previous;
 
   while (next) {
-    const currCoord = closeSet.get(next.xAxis + next.yAxis.toString());
-    next = null;
-    if (currCoord) {
-      next = currCoord.previous;
-      path.push({ xAxis: currCoord.xAxis, yAxis: currCoord.yAxis });
-    }
+    path.push(next.key);
+
+    next = next.previous;
   }
 
   return path.reverse();
 }
 
-function getDistance(index1: string, index2: string): number;
-function getDistance(index1: number, index2: number): number;
-function getDistance(index1: string | number, index2: string | number): number {
-  if (typeof index1 === "number" && typeof index2 === "number") {
-    return index1 - index2;
-  }
-
-  if (typeof index1 === "string" && typeof index2 === "string") {
-    const alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    return alph.indexOf(index1) - alph.indexOf(index2);
-  }
-
-  throw new Error("Wrong coordinate types");
-}
-
-function calcHeuristics(start: Coordinate, end: Coordinate): number {
-  return Math.sqrt(
-    Math.pow(getDistance(end.yAxis, start.yAxis), 2) +
-      Math.pow(getDistance(end.xAxis, start.xAxis), 2)
-  );
-}
-
 type CalcRouteProp = {
-  board: Chessboard;
-  start: Coordinate;
-  end: Coordinate;
+  graph: PlanarGraph;
+  startKey: string;
+  endKey: string;
 };
 
-type CalcRouteMapProp = {
-  map: ChessboardMap;
+export class PlanarGraph {
+  nodeList: Map<string, GraphNode>;
   avrgTime: number;
-  start: Coordinate;
-  end: Coordinate;
-};
+  avrgHeurs: number;
+  customPosFromKey?: (key: string) => { x: number; y: number };
+
+  constructor(
+    board: Chessboard,
+    customPosFromKey?: (key: string) => { x: number; y: number }
+  ) {
+    if (!isChessboardMap(board.map)) {
+      throw new Error("Wrong map type");
+    }
+
+    this.customPosFromKey = customPosFromKey;
+
+    this.nodeList = new Map<string, GraphNode>();
+    this.avrgTime = board.avrgTime;
+    this.avrgHeurs = board.avrgTime * 0.75;
+
+    for (const [key, neighbors] of Object.entries(board.map)) {
+      this.nodeList.set(key, {
+        key,
+        pos: this._posFromKey(key),
+        neighbors: Object.entries(neighbors).map(([key, stepTime]) => ({
+          node: key,
+          stepCost: stepTime,
+        })),
+      });
+    }
+  }
+
+  getNeighbors(key: string): GraphNode["neighbors"] {
+    debugger;
+    const node = this.nodeList.get(key);
+
+    if (!node) {
+      throw new Error("Node not found");
+    }
+
+    return node.neighbors;
+  }
+
+  calcHeuristics(start: string, end: string): number {
+    const startCoord = this.nodeList.get(start);
+    const endCoord = this.nodeList.get(end);
+
+    if (!startCoord || !endCoord) {
+      throw new Error("Node not found " + start + " " + end);
+    }
+
+    return this._calcHeuristics(startCoord, endCoord);
+  }
+
+  protected _calcHeuristics(start: GraphNode, end: GraphNode): number {
+    return (
+      Math.sqrt(
+        Math.pow(this._getDistance(end.pos.y, start.pos.y), 2) +
+          Math.pow(this._getDistance(Number(end.pos.x), Number(start.pos.x)), 2)
+      ) * this.avrgHeurs
+    );
+  }
+
+  protected _getDistance(index1: number, index2: number): number {
+    if (typeof index1 === "number" && typeof index2 === "number") {
+      return index1 - index2;
+    }
+
+    throw new Error("Wrong coordinate types");
+  }
+
+  protected _posFromKey(key: string): { x: number; y: number } {
+    if (this.customPosFromKey) return this.customPosFromKey(key);
+
+    const [x, y] = key.split("");
+
+    return { x: Number(x.charCodeAt(0) - 65), y: Number(y) - 1 };
+  }
+}
 
 function calcRoute(
   args: CalcRouteProp,
   type: "binary" | "fib" | "array" = "array"
 ) {
-  if (type === "binary")
-    return calcRouteMapBinaryQueue({
-      map: args.board.map as ChessboardMap,
-      avrgTime: args.board.avrgTime,
-      ...args,
-    });
+  if (type === "binary") return calcRouteMapBinaryQueue(args);
 
-  if (type === "fib")
-    return calcRouteMapFibonacci({
-      map: args.board.map as ChessboardMap,
-      avrgTime: args.board.avrgTime,
-      ...args,
-    });
+  if (type === "fib") return calcRouteMapFibonacci(args);
 
-  return calcRouteArray({
-    map: args.board.map as ChessboardMap,
-    avrgTime: args.board.avrgTime,
-    ...args,
-  });
+  return calcRouteArray(args);
 }
-const openSetQueueFib = new FibonacciHeap<AStarCoord>();
 
-function calcRouteMapFibonacci({
-  map,
-  avrgTime,
-  start,
-  end,
-}: CalcRouteMapProp):
+const openSetQueueFib = new FibonacciHeap<AStarNode<{ key: string }>>();
+function calcRouteMapFibonacci({ startKey, endKey, graph }: CalcRouteProp):
   | {
-      path: Coordinate[];
+      path: string[];
       cost: number;
     }
   | undefined {
-  openSetQueueFib.clear();
-  const openSet = new Map<string, FibNode<AStarCoord>>();
+  openSetQueueBin.clear();
+  const openSet = new Map<string, FibNode<AStarNode<{ key: string }>>>();
 
-  const closeSet = new Map<string, AStarCoord>();
+  const closeSet = new Map<string, AStarNode<{ key: string }>>();
 
-  const endKey = end.xAxis + end.yAxis.toString();
-
-  const startHeur = calcHeuristics(start, end) * avrgTime;
-  const startKey = start.xAxis + start.yAxis.toString();
+  const startHeur = graph.calcHeuristics(startKey, endKey);
 
   const startNode = openSetQueueFib.insert(startHeur, {
-    ...start,
+    key: startKey,
     gScore: 0,
     fScore: startHeur,
     previous: null,
@@ -125,13 +149,14 @@ function calcRouteMapFibonacci({
   openSet.set(startKey, startNode);
 
   while (openSetQueueFib.noNodes > 0) {
-    const currentCoord: AStarCoord | undefined = openSetQueueFib.extractMin();
+    const currentCoord: AStarNode<{ key: string }> | undefined =
+      openSetQueueFib.extractMin();
 
     if (!currentCoord) {
       break;
     }
 
-    const currentKey = currentCoord.xAxis + currentCoord.yAxis.toString();
+    const currentKey = currentCoord.key;
 
     if (currentKey === endKey)
       return {
@@ -142,33 +167,27 @@ function calcRouteMapFibonacci({
     openSet.delete(currentKey);
     closeSet.set(currentKey, currentCoord);
 
-    const adjacentCoord = map[currentKey];
+    const adjacentCoords = graph.getNeighbors(currentKey);
 
     // Mapping through the new coordinate neighbors
-    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
+    for (const { node, stepCost } of adjacentCoords) {
       // Calculating new step time to reach the neighbor address coordnate
-      const newGScore = currentCoord.gScore + stepTime;
-      const coord: Coordinate = {
-        xAxis: address[0],
-        yAxis: Number(address[1]),
-      };
-
-      debugger;
+      const newGScore = currentCoord.gScore + stepCost;
 
       // Case a faster path was already found to a visited node
-      const closeCoord = closeSet.get(address);
+      const closeCoord = closeSet.get(node);
       if (closeCoord && closeCoord.gScore <= newGScore) {
         continue;
       }
 
-      const fScore = newGScore + calcHeuristics(coord, end);
+      const fScore = newGScore + graph.calcHeuristics(node, endKey);
 
       // Case a faster path is found to a queued node
-      const openCoord = openSet.get(address);
+      const openCoord = openSet.get(node);
       if (openCoord) {
         if (openCoord.value.gScore > newGScore) {
           openSetQueueFib.decreaseKey(openCoord, fScore, {
-            ...coord,
+            key: node,
             gScore: newGScore,
             fScore,
             previous: currentCoord,
@@ -179,41 +198,40 @@ function calcRouteMapFibonacci({
       }
 
       const queuedNode = openSetQueueFib.insert(fScore, {
-        ...coord,
+        key: node,
         gScore: newGScore,
         fScore,
         previous: currentCoord,
       });
 
-      openSet.set(address, queuedNode);
+      openSet.set(node, queuedNode);
     }
   }
 
   throw new Error();
 }
 
-function calcRouteArray({ map, avrgTime, start, end }: CalcRouteMapProp): {
-  path: Coordinate[];
+function calcRouteArray({ startKey, endKey, graph }: CalcRouteProp): {
+  path: string[];
   cost: number;
 } {
   // Implement as a priority queue or hashmap?
-  const openSet = new Map<string, AStarCoord>();
+  const openSet = new Map<string, AStarNode<{ key: string }>>();
 
   // Use Map instead of Obj to create hash map?
-  const closeSet = new Map<string, AStarCoord>();
+  const closeSet = new Map<string, AStarNode<{ key: string }>>();
 
-  const startKey = start.xAxis + start.yAxis.toString();
-  const endKey = end.xAxis + end.yAxis.toString();
+  const fScore = graph.calcHeuristics(startKey, endKey);
 
   openSet.set(startKey, {
-    ...start,
+    key: startKey,
     gScore: 0,
-    fScore: calcHeuristics(start, end) * avrgTime,
+    fScore,
     previous: null,
   });
 
   while (openSet.size > 0) {
-    let currentCoord: AStarCoord | undefined;
+    let currentCoord: AStarNode<{ key: string }> | undefined;
     let lowestFScore = Infinity;
     let currentKey: string | undefined;
 
@@ -236,33 +254,28 @@ function calcRouteArray({ map, avrgTime, start, end }: CalcRouteMapProp): {
         cost: currentCoord.gScore,
       };
 
-    const adjacentCoord = map[currentKey];
-
     openSet.delete(currentKey);
     closeSet.set(currentKey, currentCoord);
 
-    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
-      const newGScore = currentCoord.gScore + stepTime;
-      const coord: Coordinate = {
-        xAxis: address[0],
-        yAxis: Number(address[1]),
-      };
+    const adjacentCoords = graph.getNeighbors(currentKey);
+    for (const { node, stepCost } of adjacentCoords) {
+      const newGScore = currentCoord.gScore + stepCost;
 
       // Case the node was not visited or a faster path is found
-      const openCoord = openSet.get(address);
+      const openCoord = openSet.get(node);
       if (openCoord && openCoord.gScore <= newGScore) {
         continue;
       }
 
-      const closeCoord = closeSet.get(address);
+      const closeCoord = closeSet.get(node);
       if (closeCoord && closeCoord.gScore <= newGScore) {
         continue;
       }
 
-      const fScore = newGScore + calcHeuristics(coord, end);
+      const fScore = newGScore + graph.calcHeuristics(node, endKey);
 
-      openSet.set(address, {
-        ...coord,
+      openSet.set(node, {
+        key: node,
         gScore: newGScore,
         fScore,
         previous: currentCoord,
@@ -272,48 +285,39 @@ function calcRouteArray({ map, avrgTime, start, end }: CalcRouteMapProp): {
 
   throw new Error();
 }
+const openSetQueueBin = new BinaryHeap<AStarNode<{ key: string }>>();
 
-const openSetQueue = new BinaryHeap<AStarCoord>();
-
-function calcRouteMapBinaryQueue({
-  map,
-  avrgTime,
-  start,
-  end,
-}: CalcRouteMapProp):
+function calcRouteMapBinaryQueue({ startKey, endKey, graph }: CalcRouteProp):
   | {
-      path: Coordinate[];
+      path: string[];
       cost: number;
     }
   | undefined {
-  openSetQueue.clear();
+  openSetQueueBin.clear();
+  const openSet = new Map<string, AStarNode<{ key: string }>>();
+  const closeSet = new Map<string, AStarNode<{ key: string }>>();
 
-  const openSet = new Map<string, AStarCoord>();
-  const closeSet = new Map<string, AStarCoord>();
-
-  const endKey = end.xAxis + end.yAxis.toString();
-  const startKey = start.xAxis + start.yAxis.toString();
-
-  const startFScore = calcHeuristics(start, end) * avrgTime;
+  const fScore = graph.calcHeuristics(startKey, endKey);
 
   const startNode = {
-    ...start,
+    key: startKey,
     gScore: 0,
-    fScore: startFScore,
+    fScore,
     previous: null,
   };
 
-  openSetQueue.insert(startFScore, startNode);
+  openSetQueueBin.insert(0, startNode);
   openSet.set(startKey, startNode);
 
-  while (openSetQueue.noNodes > 0) {
-    const currentCoord: AStarCoord | undefined = openSetQueue.extractMin();
+  while (openSetQueueBin.noNodes > 0) {
+    const currentCoord: AStarNode<{ key: string }> | undefined =
+      openSetQueueBin.extractMin();
 
     if (!currentCoord) {
       break;
     }
 
-    const currentKey = currentCoord.xAxis + currentCoord.yAxis.toString();
+    const currentKey = currentCoord.key;
 
     if (currentKey === endKey)
       return {
@@ -324,57 +328,51 @@ function calcRouteMapBinaryQueue({
     openSet.delete(currentKey);
     closeSet.set(currentKey, currentCoord);
 
-    const adjacentCoord = map[currentKey];
+    const adjacentCoord = graph.getNeighbors(currentKey);
 
     // Mapping through the new coordinate neighbors
-    for (const [address, stepTime] of Object.entries(adjacentCoord)) {
+    for (const { node, stepCost } of adjacentCoord) {
       // Calculating new step time to reach the neighbor address coordnate
-      const newGScore = currentCoord.gScore + stepTime;
-      const coord: Coordinate = {
-        xAxis: address[0],
-        yAxis: Number(address[1]),
-      };
-
-      debugger;
+      const newGScore = currentCoord.gScore + stepCost;
 
       // Case a faster path was already found to a visited node
-      const closeCoord = closeSet.get(address);
+      const closeCoord = closeSet.get(node);
       if (closeCoord && closeCoord.gScore <= newGScore) {
         continue;
       }
 
-      const fScore = newGScore + calcHeuristics(coord, end);
+      const fScore = newGScore + graph.calcHeuristics(node, endKey);
 
       // Case a faster path is found to a queued node
-      const openCoord = openSet.get(address);
+      const openCoord = openSet.get(node);
 
       if (openCoord) {
         if (openCoord.gScore > newGScore) {
           const queuedCoord = {
-            ...coord,
+            ...openCoord,
             gScore: newGScore,
             fScore,
             previous: currentCoord,
           };
 
-          const index = openSetQueue.values.findIndex(
+          const index = openSetQueueBin.values.findIndex(
             (node) => node.value === openCoord
           );
-          openSetQueue.decreaseKey(index, fScore, queuedCoord);
-          openSet.set(address, queuedCoord);
+          openSetQueueBin.decreaseKey(index, fScore, queuedCoord);
+          openSet.set(node, queuedCoord);
         }
 
         continue;
       }
 
       const queuedNode = {
-        ...coord,
+        key: node,
         gScore: newGScore,
         fScore,
         previous: currentCoord,
       };
-      openSetQueue.insert(fScore, queuedNode);
-      openSet.set(address, queuedNode);
+      openSetQueueBin.insert(fScore, queuedNode);
+      openSet.set(node, queuedNode);
     }
   }
 

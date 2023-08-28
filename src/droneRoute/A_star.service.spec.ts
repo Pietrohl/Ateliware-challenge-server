@@ -1,8 +1,7 @@
-import type { Chessboard } from "../chessboard/models/chessboard.model";
-import { calcRoute } from "./A_star.service";
+import { PlanarGraph, calcRoute } from "./A_star.service";
 
 describe("A* Route Algorithm", () => {
-  const board: Chessboard = {
+  const graph = new PlanarGraph({
     avrgTime: 9.7,
     map: {
       A1: { A2: 11.88, B1: 10.46 },
@@ -61,53 +60,51 @@ describe("A* Route Algorithm", () => {
       E8: { D8: 22.39, F8: 26.48, E7: 10.59 },
       F8: { E8: 16.02, G8: 16.84, F7: 11.63 },
       G8: { F8: 15.66, H8: 25.25, G7: 13.51 },
-      H1: { G1: 20.27, H2: 28.45 },
-      H2: { G2: 10.88, H3: 10.54, H1: 18.53 },
-      H3: { G3: 18.84, H4: 23.07, H2: 14.64 },
-      H4: { G4: 23.14, H5: 12.47, H3: 10.54 },
-      H5: { G5: 23.81, H6: 19.53, H4: 25.93 },
-      H6: { G6: 18.3, H7: 10.89, H5: 12.65 },
-      H7: { G7: 20.93, H8: 11.74, H6: 14.12 },
-      H8: { G8: 11.86, H7: 21.53 },
+      H1: { G1: 20.27, H2: 28.45, I1: 27.9 },
+      H2: { G2: 10.88, H3: 10.54, H1: 18.53, I2: 22.3 },
+      H3: { G3: 18.84, H4: 23.07, H2: 14.64, I3: 9.2 },
+      H4: { G4: 23.14, H5: 12.47, H3: 10.54, I4: 10.9 },
+      H5: { G5: 23.81, H6: 19.53, H4: 25.93, I5: 5.2 },
+      H6: { G6: 18.3, H7: 10.89, H5: 12.65, I6: 30.2 },
+      H7: { G7: 20.93, H8: 11.74, H6: 14.12, I7: 19.2 },
+      H8: { G8: 11.86, H7: 21.53, I8: 32.53 },
+      I1: { H1: 10.9, I2: 10.9 },
+      I2: { H2: 10.9, I3: 10.9, I1: 10.9 },
+      I3: { H3: 10.9, I4: 10.9, I2: 10.9 },
+      I4: { H4: 10.9, I5: 10.9, I3: 20.9 },
+      I5: { H5: 10.9, I6: 11.9, I4: 10.9 },
+      I6: { H6: 10.9, I7: 13.2, I5: 10.9 },
+      I7: { H7: 10.9, I8: 10.9, I6: 10.9 },
+      I8: { H8: 10.9, I7: 10.9 },
     },
-  };
+  });
 
   it("should return the correct path", () => {
     expect(
       calcRoute({
-        board,
-        start: { xAxis: "A", yAxis: 1 },
-        end: { xAxis: "B", yAxis: 3 },
+        graph,
+        startKey: "A1",
+        endKey: "B3",
       })
     ).toMatchObject({
       cost: 46.540000000000006,
-      path: [
-        { xAxis: "A", yAxis: 1 },
-        { xAxis: "A", yAxis: 2 },
-        { xAxis: "A", yAxis: 3 },
-        { xAxis: "B", yAxis: 3 },
-      ],
+      path: ["A1", "A2", "A3", "B3"],
     });
   });
 
-  it("should return the correct path using queue", () => {
+  it("should return the correct path using fibonacci queue", () => {
     expect(
       calcRoute(
         {
-          board,
-          start: { xAxis: "A", yAxis: 1 },
-          end: { xAxis: "B", yAxis: 3 },
+          graph,
+          startKey: "A1",
+          endKey: "B3",
         },
         "fib"
       )
     ).toMatchObject({
       cost: 46.540000000000006,
-      path: [
-        { xAxis: "A", yAxis: 1 },
-        { xAxis: "A", yAxis: 2 },
-        { xAxis: "A", yAxis: 3 },
-        { xAxis: "B", yAxis: 3 },
-      ],
+      path: ["A1", "A2", "A3", "B3"],
     });
   });
 });

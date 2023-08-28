@@ -1,6 +1,6 @@
 import type { AppContainer } from "../container";
 import { logger } from "../utils";
-import { calcRoute } from "./A_star.service";
+import { PlanarGraph, calcRoute } from "./A_star.service";
 import type { Coordinate } from "./models/coordinate.model";
 import type { DroneRoute } from "./models/droneRoute.model";
 
@@ -29,15 +29,22 @@ export const createDroneRouteService = ({
       deliveryCoordinate
     ) => {
       const board = await chessboardRepository.getBoard();
+
+      const graph = new PlanarGraph(board);
+
+      const initialCoordinateKey = `${initialCoordinate.x}${initialCoordinate.y}`;
+      const packageCoordinateKey = `${packageCoordinate.x}${packageCoordinate.y}`;
       const a = calcRoute({
-        board,
-        start: initialCoordinate,
-        end: packageCoordinate,
+        graph,
+        startKey: initialCoordinateKey,
+        endKey: packageCoordinateKey,
       });
+
+      const deliveryCoordinateKey = `${deliveryCoordinate.x}${deliveryCoordinate.y}`;
       const b = calcRoute({
-        board,
-        start: packageCoordinate,
-        end: deliveryCoordinate,
+        graph,
+        startKey: packageCoordinateKey,
+        endKey: deliveryCoordinateKey,
       });
 
       if (!a || !b) throw new Error();

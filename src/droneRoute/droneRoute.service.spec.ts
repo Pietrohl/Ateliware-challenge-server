@@ -77,17 +77,18 @@ describe("droneRouteService", () => {
   };
 
   const mockRoute: DroneRoute = {
-    initialCoordinate: { xAxis: "A", yAxis: 1 },
-    packageCoordinate: { xAxis: "A", yAxis: 2 },
-    deliveryCoordinate: { xAxis: "A", yAxis: 3 },
+    initialCoordinate: { x: "A", y: 1 },
+    packageCoordinate: { x: "A", y: 2 },
+    deliveryCoordinate: { x: "A", y: 3 },
     path: [
-      { xAxis: "A", yAxis: 1 },
-      { xAxis: "A", yAxis: 2 },
-      { xAxis: "A", yAxis: 3 },
+      { x: "A", y: 1 },
+      { x: "A", y: 2 },
+      { x: "A", y: 3 },
     ],
     time: 33.88,
   };
   const mockDroneList = Array(1).fill(mockRoute);
+
   const chessboardRepository = {
     getBoard: () => Promise.resolve({ avrgTime: 17.8, map: chessboard }),
   };
@@ -120,10 +121,16 @@ describe("droneRouteService", () => {
   it("Should correctly calcutale the new path", async () => {
     expect(
       await droneRouteService.calculateNewRoute(
-        { xAxis: "A", yAxis: 1 },
-        { xAxis: "A", yAxis: 2 },
-        { xAxis: "A", yAxis: 3 }
+        { x: "A", y: 1 },
+        { x: "A", y: 2 },
+        { x: "A", y: 3 }
       )
-    ).toMatchObject(mockRoute);
+    ).toMatchObject({
+      initialCoordinate: { x: "A", y: 1 },
+      packageCoordinate: { x: "A", y: 2 },
+      deliveryCoordinate: { x: "A", y: 3 },
+      path: ["A1", "A2", "A3"],
+      time: 33.88,
+    });
   });
 });

@@ -1,4 +1,4 @@
-import type { Coordinate } from "src/droneRoute/models/coordinate.model";
+import type { Coordinate } from "../../droneRoute/models/coordinate.model";
 
 export type CoordinateStepTimes = {
   [key: string]: number;
@@ -10,18 +10,19 @@ export type ChessboardMap = {
   };
 };
 
-export type ChessboardNode = {
-  coordinate: Coordinate;
-  neighbors: Array<{ coordinate: Coordinate; stepCost: number }>;
+export type GraphNode = {
+  key: string;
+  pos: Coordinate;
+  neighbors: Array<{ node: string; stepCost: number }>;
 };
 
 export type Chessboard = {
-  map: ChessboardMap | Array<Array<ChessboardNode>>;
+  map: ChessboardMap;
   avrgTime: number;
 };
 
 export function isChessboardMap(
-  obj: ChessboardNode[][] | ChessboardMap
+  obj: GraphNode[][] | ChessboardMap
 ): obj is ChessboardMap {
   return !Array.isArray(obj);
 }

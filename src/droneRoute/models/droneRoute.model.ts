@@ -4,6 +4,6 @@ export type DroneRoute = {
   initialCoordinate: Coordinate;
   packageCoordinate: Coordinate;
   deliveryCoordinate: Coordinate;
-  path: Coordinate[];
+  path: Coordinate[] | string[];
   time: number;
 };

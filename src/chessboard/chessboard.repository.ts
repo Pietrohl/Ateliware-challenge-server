@@ -1,6 +1,6 @@
 import https from "https";
 import { logger } from "../utils";
-import { type Chessboard } from "./models/chessboard.model";
+import { type Chessboard, type ChessboardMap } from "./models/chessboard.model";
 export type ChessboardRepository = { getBoard: () => Promise<Chessboard> };
 
 export const createChessboardRepository = () => {
@@ -20,7 +20,9 @@ export const createChessboardRepository = () => {
             });
 
             res.on("end", () => {
-              const map = JSON.parse(Buffer.concat(data).toString()) as unknown;
+              const map = JSON.parse(
+                Buffer.concat(data).toString()
+              ) as ChessboardMap;
               const times: number[] = Object.values(map).flatMap((obj) =>
                 Object.values(obj as NonNullable<unknown>)
               );
