@@ -1,13 +1,14 @@
 import https from "https";
 import { logger } from "../utils";
 import { type Chessboard, type ChessboardMap } from "./models/chessboard.model";
+import { readFile } from "fs/promises";
 export type ChessboardRepository = { getBoard: () => Promise<Chessboard> };
 
-export const createChessboardRepository = () => {
+export const createChessboardRepository = (type: "local" | "http" = "http") => {
   logger.info("Initiating Chessboard Repository...");
   let chessboard: Chessboard;
 
-  function updateBoard() {
+  function updateBoardFromWeb() {
     return new Promise<void>((resolve, reject) => {
       https
         .get(
@@ -41,6 +42,21 @@ export const createChessboardRepository = () => {
           reject(err);
         });
     });
+  }
+
+  async function updateBoardFromLocal() {
+    try {
+      await readFile("./board.json", "utf8")
+        .then((data) => JSON.parse(data) as Chessboard)
+        .then((data) => (chessboard = data));
+    } catch (err) {
+      logger.error(`error loading on`, err);
+    }
+  }
+
+  async function updateBoard() {
+    if (type === "http") await updateBoardFromWeb();
+    else await updateBoardFromLocal();
   }
 
   return {

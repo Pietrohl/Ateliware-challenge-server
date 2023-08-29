@@ -108,9 +108,32 @@ export class PlanarGraph {
   protected _posFromKey(key: string): { x: number; y: number } {
     if (this.customPosFromKey) return this.customPosFromKey(key);
 
-    const [x, y] = key.split("");
+    function isCharNumber(c: string) {
+      return c >= "0" && c <= "9";
+    }
 
-    return { x: Number(x.charCodeAt(0) - 65), y: Number(y) - 1 };
+    const xAxis = [];
+    const yAxis = [];
+
+    for (const char of key) {
+      if (isCharNumber(char)) {
+        yAxis.push(char);
+      } else {
+        xAxis.push(char);
+      }
+    }
+
+    return {
+      x:
+        xAxis
+          .map((val) => val.charCodeAt(0) - 64)
+          .reduce(
+            (prev, val, index, arr) =>
+              prev + val * Math.pow(26, arr.length - index - 1),
+            0
+          ) - 1,
+      y: Number(yAxis.join("")) - 1,
+    };
   }
 }
 
